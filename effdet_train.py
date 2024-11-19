@@ -16,7 +16,7 @@ from apex import amp
 
 from models import get_effdet
 from warmup_scheduler import GradualWarmupScheduler
-from dataset import WheatDataset
+from dataset import CropDataset
 
 ## uncomment to train with more workers
 import resource
@@ -81,9 +81,9 @@ if __name__ == "__main__":
         warm_df = pd.concat([train_df, wheat2017_df, spike_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
         train_df = pd.concat([train_df, wheat2017_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
 
-        warm_dataset = WheatDataset(df=warm_df, img_size=args.img_size, mode='train', network='EffDet')
-        train_dataset = WheatDataset(df=train_df, img_size=args.img_size, mode='train', network='EffDet')
-        valid_dataset = WheatDataset(df=valid_df, img_size=args.img_size, mode='valid', network='EffDet')
+        warm_dataset = CropDataset(df=warm_df, img_size=args.img_size, mode='train', network='EffDet')
+        train_dataset = CropDataset(df=train_df, img_size=args.img_size, mode='train', network='EffDet')
+        valid_dataset = CropDataset(df=valid_df, img_size=args.img_size, mode='valid', network='EffDet')
         
         warm_loader = DataLoader(
             warm_dataset,

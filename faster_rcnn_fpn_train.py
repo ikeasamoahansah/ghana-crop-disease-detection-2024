@@ -17,7 +17,7 @@ from torch.utils.data.sampler import SequentialSampler, RandomSampler
 
 from models import fasterrcnn_resnet_fpn
 from warmup_scheduler import GradualWarmupScheduler
-from dataset import WheatDataset
+from dataset import CropDataset
 from evaluation import calculate_final_score
 
 ### uncomment to train with more workers
@@ -82,9 +82,9 @@ if __name__ == "__main__":
         warm_df = pd.concat([train_df, wheat2017_df, spike_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
         train_df = pd.concat([train_df, wheat2017_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
 
-        warm_dataset = WheatDataset(df=warm_df, img_size=args.img_size, mode='train', network='FasterRCNN')
-        train_dataset = WheatDataset(df=train_df, img_size=args.img_size, mode='train', network='FasterRCNN')
-        valid_dataset = WheatDataset(df=valid_df, img_size=args.img_size, mode='valid', network='FasterRCNN')
+        warm_dataset = CropDataset(df=warm_df, img_size=args.img_size, mode='train', network='FasterRCNN')
+        train_dataset = CropDataset(df=train_df, img_size=args.img_size, mode='train', network='FasterRCNN')
+        valid_dataset = CropDataset(df=valid_df, img_size=args.img_size, mode='valid', network='FasterRCNN')
         
         warm_loader = DataLoader(
             warm_dataset,

@@ -25,9 +25,9 @@ def bb_overlap(boxA, boxB):
     iou = interArea / float(boxAArea)
     return iou
 
-class WheatDataset(Dataset):
+class CropDataset(Dataset):
     def __init__(self, df, img_size, mode='train', network='FasterRCNN', bbox_removal_threshold=0.25):
-        super(WheatDataset,self).__init__()
+        super(CropDataset,self).__init__()
         self.df = df
         self.image_ids = list(np.unique(self.df.image_id.values))
         self.img_size = img_size
@@ -256,9 +256,9 @@ class WheatDataset(Dataset):
         image = torch.from_numpy(image).permute(2,0,1)
         return image, target
 
-class WheatTestset(Dataset):
+class CropTestset(Dataset):
     def __init__(self, df, img_size, root_dir='dataset/train', shuffle=True):
-        super(WheatTestset,self).__init__()
+        super(CropTestset,self).__init__()
         self.df = df
         self.image_ids = list(np.unique(self.df.image_id.values))
         if shuffle:
@@ -285,9 +285,9 @@ class WheatTestset(Dataset):
 
         return img, image_id
 
-class WheatPseudoTestset(Dataset):
+class CropPseudoTestset(Dataset):
     def __init__(self, df, img_size, mode='train', bbox_removal_threshold=0.25):
-        super(WheatPseudoTestset,self).__init__()
+        super(CropPseudoTestset,self).__init__()
         self.df = df
         self.image_paths = list(np.unique(self.df.image_path.values))
         self.img_size = img_size
@@ -484,7 +484,7 @@ class WheatPseudoTestset(Dataset):
         image = torch.from_numpy(image).permute(2,0,1)
         return image, target
 
-class BaseWheatTTA:
+class BaseCropTTA:
     def augment(self, images):
         raise NotImplementedError
 
@@ -499,7 +499,7 @@ class BaseWheatTTA:
     def deaugment_boxes(self, boxes):
         raise NotImplementedError
 
-class TTAHorizontalFlip(BaseWheatTTA):
+class TTAHorizontalFlip(BaseCropTTA):
     def __init__(self, image_size):
         self.image_size = image_size
 
@@ -513,7 +513,7 @@ class TTAHorizontalFlip(BaseWheatTTA):
         boxes[:, [1,3]] = self.image_size - boxes[:, [3,1]]
         return self.prepare_boxes(boxes)
 
-class TTAVerticalFlip(BaseWheatTTA):
+class TTAVerticalFlip(BaseCropTTA):
     def __init__(self, image_size):
         self.image_size = image_size
 
@@ -527,7 +527,7 @@ class TTAVerticalFlip(BaseWheatTTA):
         boxes[:, [0,2]] = self.image_size - boxes[:, [2,0]]
         return boxes
 
-class TTARotate90(BaseWheatTTA):
+class TTARotate90(BaseCropTTA):
     def __init__(self, image_size):
         self.image_size = image_size
     
