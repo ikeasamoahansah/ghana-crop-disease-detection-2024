@@ -32,7 +32,7 @@ class CropDataset(Dataset):
         self.df = df
         self.image_ids = list(np.unique(self.df.image_id.values))
         self.img_size = img_size
-        self.root_dir = 'dataset/train'
+        self.root_dir = 'dataset/images'
         # self.w2017_ext_dir = 'dataset/wheat2017'
         # self.spike_ext_dir = 'dataset/spike-wheat'
         assert mode in  ['train', 'valid']
