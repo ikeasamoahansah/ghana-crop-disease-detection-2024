@@ -54,7 +54,7 @@ def collate_fn(batch):
     return tuple(zip(*batch))
 
 if __name__ == "__main__":
-    df = pd.read_csv('dataset/trainset.csv')
+    df = pd.read_csv('dataset/Train.csv')
 
     ground_truth = {}
     box_pred = {}
@@ -71,9 +71,9 @@ if __name__ == "__main__":
         valid_dataset = CropTestset(df=valid_df, img_size=args.img_size, root_dir='dataset/train')
         valid_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, collate_fn=collate_fn)
 
-        for image_id in list(np.unique(valid_df.image_id.values)):
+        for image_id in list(np.unique(valid_df.Image_ID.values)):
             bbxs = []
-            tmp_df = valid_df.loc[valid_df['image_id']==image_id]
+            tmp_df = valid_df.loc[valid_df['Image_ID']==image_id]
             for _, row in tmp_df.iterrows():
                 bbxs.append([float(row['xmin']),float(row['ymin']),float(row['xmax']),float(row['ymax'])])
             
@@ -116,7 +116,7 @@ if __name__ == "__main__":
                     for image_id, o in zip(image_ids, outputs):
                         boxes = o['boxes'].data.cpu().numpy()
                         scores = o['scores'].data.cpu().numpy()
-                        labels = o['labels'].data.cpu().numpy()
+                        labels = o['class'].data.cpu().numpy()
 
                         boxes = tta_transform.deaugment_boxes(boxes)
 

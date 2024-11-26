@@ -88,7 +88,7 @@ def refine_checkpoint_out(ckpt_input, ckpt_output):
 
 def make_pseudo_dataframe(test_df, output_dict, TEST_DIR, df, TRAIN_DIR, PSEUDO_FOLD):
     results = []
-    for image_id in list(np.unique(test_df.image_id.values)):
+    for image_id in list(np.unique(test_df.Image_ID.values)):
         boxes, scores = output_dict[image_id]
         if boxes.shape[0] == 0:
             result = {
@@ -111,18 +111,18 @@ def make_pseudo_dataframe(test_df, output_dict, TEST_DIR, df, TRAIN_DIR, PSEUDO_
                     'isbox': True
                 }
                 results.append(result)
-    pseudo_df = pd.DataFrame(results, columns=['image_path', 'xmin', 'ymin', 'xmax', 'ymax', 'isbox'])
+    pseudo_df = pd.DataFrame(results, columns=['xmin', 'ymin', 'xmax', 'ymax'])
     
     img_paths = []
-    for image_id in df.image_id.values:
+    for image_id in df.Image_ID.values:
         img_paths.append(os.path.join(TRAIN_DIR, image_id+'.jpg'))
     df['image_path'] = np.array(img_paths)
     valid_df = df.loc[df['fold'] == PSEUDO_FOLD]
     train_df = df.loc[~df.index.isin(valid_df.index)]
     valid_df = valid_df.loc[valid_df['isbox']==True]
     
-    train_df = train_df[['image_path','xmin','ymin','xmax','ymax','isbox']].reset_index(drop=True)
-    valid_df = valid_df[['image_path','xmin','ymin','xmax','ymax','isbox']].reset_index(drop=True)
+    train_df = train_df[['xmin','ymin','xmax','ymax']].reset_index(drop=True)
+    valid_df = valid_df[['xmin','ymin','xmax','ymax']].reset_index(drop=True)
 
     train_df = pd.concat([train_df, pseudo_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
     train_df.to_csv('train.csv', index=False)

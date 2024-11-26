@@ -65,7 +65,7 @@ if __name__ == "__main__":
     os.makedirs('checkpoints', exist_ok = True)
     os.makedirs('logs', exist_ok = True)
 
-    df = pd.read_csv('dataset/trainset.csv')
+    df = pd.read_csv('dataset/Train.csv')
     
     wheat2017_df = pd.read_csv('dataset/wheat2017.csv')
     wheat2017_df = wheat2017_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
                         else:
                             target = {
                                 'boxes': torch.cat([targets[i.item()]['boxes'], targets[si.item()]['boxes']]),
-                                'labels': torch.cat([targets[i.item()]['labels'], targets[si.item()]['labels']])
+                                'class': torch.cat([targets[i.item()]['class'], targets[si.item()]['class']])
                             }
                         
                         mix_targets.append(target)
@@ -171,7 +171,7 @@ if __name__ == "__main__":
                 else:
                     images = torch.stack(images).cuda()
                 boxes = [target['boxes'].cuda().float() for target in targets]
-                labels = [target['labels'].cuda().float() for target in targets]
+                labels = [target['class'].cuda().float() for target in targets]
 
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(True):
@@ -194,7 +194,7 @@ if __name__ == "__main__":
             for images, targets in tqdm(valid_loader):
                 images = torch.stack(images).cuda()
                 boxes = [target['boxes'].cuda().float() for target in targets]
-                labels = [target['labels'].cuda().float() for target in targets]
+                labels = [target['class'].cuda().float() for target in targets]
 
                 with torch.set_grad_enabled(False):
                     loss, _, _ = model(images, boxes, labels)

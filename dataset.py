@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import Dataset
 import torch.nn.functional as F
 from albumentations import *
+from torchvision.transforms import *
 
 cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
@@ -119,13 +120,7 @@ class CropDataset(Dataset):
 
     def load_image_and_boxes(self, image_id):
         tmp_df = self.df.loc[self.df['image_id']==image_id]
-        source = np.unique(tmp_df.source.values)[0]
-        if source == 'wheat2017':
-            img_path = '{}/{}.jpg'.format(self.w2017_ext_dir, image_id)
-        elif source == 'spike':
-            img_path = '{}/{}.jpg'.format(self.spike_ext_dir, image_id)
-        else:
-            img_path = '{}/{}.jpg'.format(self.root_dir, image_id)
+        img_path = '{}/{}.jpg'.format(self.root_dir, image_id)
         
         img = Image.open(img_path)
         img = img.convert('RGB')
@@ -142,7 +137,7 @@ class CropDataset(Dataset):
             boxes = np.array(boxes, dtype=float)
         else:
             boxes = np.array([], dtype=float).reshape(0,4)
-        return img, boxes, source
+        return img, boxes
     
     def load_cutmix_image_and_boxes(self, image_id, imsize=1024):   #custom mosaic data augmentation
         image_ids = self.image_ids.copy()
@@ -153,13 +148,7 @@ class CropDataset(Dataset):
         
         xc, yc = [int(random.uniform(imsize * 0.25, imsize * 0.75)) for _ in range(2)]
         for i, img_id in enumerate(cutmix_image_ids):
-            image, boxes, source = self.load_image_and_boxes(img_id)
-            if source == 'spike':
-                height, width = image.shape[0:2]
-                if i == 0 or i == 3:
-                    image, boxes = self.crop_image(image, boxes, xmin=width-1024, ymin=0, xmax=width, ymax=1024)
-                else:
-                    image, boxes = self.crop_image(image, boxes, xmin=0, ymin=0, xmax=1024, ymax=1024)
+            image, boxes = self.load_image_and_boxes(img_id)
             if i == 0:
                 image, boxes = self.crop_image(image, boxes, imsize-xc, imsize-yc, imsize, imsize)
                 result_image[0:yc, 0:xc,:] = image
@@ -200,13 +189,7 @@ class CropDataset(Dataset):
         if self.mode == 'train':
             while(True):
                 if random.random() > 0.5:
-                    image, boxes, source = self.load_image_and_boxes(image_id)
-                    if source == 'spike':
-                        height, width = image.shape[0:2]
-                        if random.random() > 0.5:
-                            image, boxes = self.crop_image(image, boxes, xmin=0, ymin=0, xmax=1024, ymax=1024)
-                        else:
-                            image, boxes = self.crop_image(image, boxes, xmin=width-1024, ymin=0, xmax=width, ymax=1024)
+                    image, boxes = self.load_image_and_boxes(image_id)
                 else:
                     image, boxes = self.load_cutmix_image_and_boxes(image_id)
 
@@ -219,7 +202,7 @@ class CropDataset(Dataset):
                     boxes = np.array(augmented['bboxes'])
                     break
         else:
-            image, boxes, _ = self.load_image_and_boxes(image_id)
+            image, boxes = self.load_image_and_boxes(image_id)
             if self.img_size != 1024:
                 image, boxes = self.resize_image(image, boxes)
 
@@ -227,19 +210,19 @@ class CropDataset(Dataset):
             if boxes.shape[0] == 0:
                 target = {
                     "boxes": torch.zeros((0, 4), dtype=torch.float32),
-                    "labels": torch.zeros(0, dtype=torch.int64)
+                    "class": torch.zeros(0, dtype=torch.int64)
                 }
             else:
                 boxes[:,[0,1,2,3]] = boxes[:,[1,0,3,2]]
                 target = {
                     'boxes': torch.as_tensor(boxes, dtype=torch.float32),
-                    'labels': torch.ones((boxes.shape[0],), dtype=torch.int64)
+                    'class': torch.ones((boxes.shape[0],), dtype=torch.int64)
                 }
         else:
             if boxes.shape[0] == 0:
                 target = {
                     "boxes": torch.zeros((0, 4), dtype=torch.float32),
-                    "labels": torch.zeros(0, dtype=torch.int64),
+                    "class": torch.zeros(0, dtype=torch.int64),
                     "area": torch.zeros(0, dtype=torch.float32),
                     "iscrowd": torch.zeros((0,), dtype=torch.int64)
                 }
@@ -247,7 +230,7 @@ class CropDataset(Dataset):
                 target = {}
                 area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
                 target['boxes'] = torch.as_tensor(boxes, dtype=torch.float32)
-                target['labels'] = torch.ones((boxes.shape[0],), dtype=torch.int64)
+                target['class'] = torch.ones((boxes.shape[0],), dtype=torch.int64)
                 target['area'] = torch.as_tensor(area, dtype=torch.float32)
                 target['iscrowd'] = torch.zeros((boxes.shape[0],), dtype=torch.int64)
             
@@ -470,13 +453,13 @@ class CropPseudoTestset(Dataset):
         if boxes.shape[0] == 0:
             target = {
                 "boxes": torch.zeros((0, 4), dtype=torch.float32),
-                "labels": torch.zeros(0, dtype=torch.int64)
+                "class": torch.zeros(0, dtype=torch.int64)
             }
         else:
             boxes[:,[0,1,2,3]] = boxes[:,[1,0,3,2]]
             target = {
                 'boxes': torch.as_tensor(boxes, dtype=torch.float32),
-                'labels': torch.ones((boxes.shape[0],), dtype=torch.int64)
+                'class': torch.ones((boxes.shape[0],), dtype=torch.int64)
             }
 
         image = image.astype(np.float32)

@@ -66,7 +66,7 @@ if __name__ == "__main__":
     os.makedirs('checkpoints', exist_ok = True)
     os.makedirs('logs', exist_ok = True)
 
-    df = pd.read_csv('dataset/trainset.csv')
+    df = pd.read_csv('dataset/Train.csv')
     
     wheat2017_df = pd.read_csv('dataset/wheat2017.csv')
     wheat2017_df = wheat2017_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)
@@ -165,7 +165,7 @@ if __name__ == "__main__":
                         else:
                             target = {
                                 'boxes': torch.cat([targets[i.item()]['boxes'], targets[si.item()]['boxes']]),
-                                'labels': torch.cat([targets[i.item()]['labels'], targets[si.item()]['labels']]),
+                                'class': torch.cat([targets[i.item()]['class'], targets[si.item()]['class']]),
                                 'area': torch.cat([targets[i.item()]['area'], targets[si.item()]['area']]),
                                 'iscrowd': torch.cat([targets[i.item()]['iscrowd'], targets[si.item()]['iscrowd']])
                             }
