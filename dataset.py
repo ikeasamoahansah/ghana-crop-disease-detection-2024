@@ -33,8 +33,8 @@ class CropDataset(Dataset):
         self.image_ids = list(np.unique(self.df.image_id.values))
         self.img_size = img_size
         self.root_dir = 'dataset/train'
-        self.w2017_ext_dir = 'dataset/wheat2017'
-        self.spike_ext_dir = 'dataset/spike-wheat'
+        # self.w2017_ext_dir = 'dataset/wheat2017'
+        # self.spike_ext_dir = 'dataset/spike-wheat'
         assert mode in  ['train', 'valid']
         self.mode = mode
         assert network in ['FasterRCNN', 'EffDet']
@@ -119,7 +119,7 @@ class CropDataset(Dataset):
                 return image, boxes
 
     def load_image_and_boxes(self, image_id):
-        tmp_df = self.df.loc[self.df['image_id']==image_id]
+        tmp_df = self.df.loc[self.df['Image_ID']==image_id]
         img_path = '{}/{}.jpg'.format(self.root_dir, image_id)
         
         img = Image.open(img_path)
@@ -243,7 +243,7 @@ class CropTestset(Dataset):
     def __init__(self, df, img_size, root_dir='dataset/train', shuffle=True):
         super(CropTestset,self).__init__()
         self.df = df
-        self.image_ids = list(np.unique(self.df.image_id.values))
+        self.image_ids = list(np.unique(self.df.Image_ID.values))
         if shuffle:
             random.shuffle(self.image_ids)
         self.img_size = img_size

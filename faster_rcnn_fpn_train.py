@@ -68,33 +68,33 @@ if __name__ == "__main__":
 
     df = pd.read_csv('dataset/Train.csv')
     
-    wheat2017_df = pd.read_csv('dataset/wheat2017.csv')
-    wheat2017_df = wheat2017_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)
+    # wheat2017_df = pd.read_csv('dataset/wheat2017.csv')
+    # wheat2017_df = wheat2017_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)
 
-    spike_df = pd.read_csv('dataset/spike-wheat.csv')
-    spike_df = spike_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)
+    # spike_df = pd.read_csv('dataset/spike-wheat.csv')
+    # spike_df = spike_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)
 
     for fold in args.folds:
         valid_df = df.loc[df['fold'] == fold]
         train_df = df.loc[~df.index.isin(valid_df.index)]
         
         valid_df = valid_df.loc[valid_df['isbox']==True].reset_index(drop=True)
-        warm_df = pd.concat([train_df, wheat2017_df, spike_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
-        train_df = pd.concat([train_df, wheat2017_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
+        # warm_df = pd.concat([train_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
+        # train_df = pd.concat([train_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
 
-        warm_dataset = CropDataset(df=warm_df, img_size=args.img_size, mode='train', network='FasterRCNN')
+        # warm_dataset = CropDataset(df=warm_df, img_size=args.img_size, mode='train', network='FasterRCNN')
         train_dataset = CropDataset(df=train_df, img_size=args.img_size, mode='train', network='FasterRCNN')
         valid_dataset = CropDataset(df=valid_df, img_size=args.img_size, mode='valid', network='FasterRCNN')
         
-        warm_loader = DataLoader(
-            warm_dataset,
-            batch_size=args.batch_size,
-            sampler=RandomSampler(warm_dataset),
-            pin_memory=False,
-            drop_last=True,
-            num_workers=args.workers,
-            collate_fn=collate_fn
-        )
+        # warm_loader = DataLoader(
+          #  warm_dataset,
+          #  batch_size=args.batch_size,
+          #  sampler=RandomSampler(warm_dataset),
+          #  pin_memory=False,
+          #  drop_last=True,
+          #  num_workers=args.workers,
+          #  collate_fn=collate_fn
+        # )
 
         train_loader = DataLoader(
             train_dataset,
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             num_workers=args.workers,
             collate_fn=collate_fn
         )
-        print('WARM: {} | TRAIN: {} | VALID: {}'.format(len(warm_loader.dataset), len(train_loader.dataset), len(valid_loader.dataset)))
+        print('TRAIN: {} | VALID: {}'.format(len(train_loader.dataset), len(valid_loader.dataset)))
 
         CHECKPOINT = 'checkpoints/fasterrcnn_{}_{}_fold{}.pth'.format(args.backbone, args.img_size, fold)
         LOG = 'logs/fasterrcnn_{}_{}_fold{}.csv'.format(args.backbone, args.img_size, fold)
@@ -146,10 +146,7 @@ if __name__ == "__main__":
             loss_hist.reset()
             model.train()
 
-            if epoch < args.warm_epochs:
-                loop = tqdm(warm_loader)
-            else:
-                loop = tqdm(train_loader)
+            loop = tqdm(train_loader)
             for images, targets in loop:
                 ### mixup
                 if random.random() > 0.5 and epoch >= args.warm_epochs:

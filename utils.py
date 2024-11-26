@@ -121,8 +121,8 @@ def make_pseudo_dataframe(test_df, output_dict, TEST_DIR, df, TRAIN_DIR, PSEUDO_
     train_df = df.loc[~df.index.isin(valid_df.index)]
     valid_df = valid_df.loc[valid_df['isbox']==True]
     
-    train_df = train_df[['xmin','ymin','xmax','ymax']].reset_index(drop=True)
-    valid_df = valid_df[['xmin','ymin','xmax','ymax']].reset_index(drop=True)
+    train_df = train_df[['xmin','ymin','xmax','ymax', 'isbox']].reset_index(drop=True)
+    valid_df = valid_df[['xmin','ymin','xmax','ymax', 'isbox']].reset_index(drop=True)
 
     train_df = pd.concat([train_df, pseudo_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
     train_df.to_csv('train.csv', index=False)
