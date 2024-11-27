@@ -162,7 +162,7 @@ if __name__ == "__main__":
                         else:
                             target = {
                                 'boxes': torch.cat([targets[i.item()]['boxes'], targets[si.item()]['boxes']]),
-                                'class': torch.cat([targets[i.item()]['class'], targets[si.item()]['class']]),
+                                'labels': torch.cat([targets[i.item()]['labels'], targets[si.item()]['labels']]),
                                 'area': torch.cat([targets[i.item()]['area'], targets[si.item()]['area']]),
                                 'iscrowd': torch.cat([targets[i.item()]['iscrowd'], targets[si.item()]['iscrowd']])
                             }

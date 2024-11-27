@@ -207,19 +207,19 @@ class CropDataset(Dataset):
             if boxes.shape[0] == 0:
                 target = {
                     "boxes": torch.zeros((0, 4), dtype=torch.float32),
-                    "class": torch.zeros(0, dtype=torch.int64)
+                    "labels": torch.zeros(0, dtype=torch.int64)
                 }
             else:
                 boxes[:,[0,1,2,3]] = boxes[:,[1,0,3,2]]
                 target = {
                     'boxes': torch.as_tensor(boxes, dtype=torch.float32),
-                    'class': torch.ones((boxes.shape[0],), dtype=torch.int64)
+                    'labels': torch.ones((boxes.shape[0],), dtype=torch.int64)
                 }
         else:
             if boxes.shape[0] == 0:
                 target = {
                     "boxes": torch.zeros((0, 4), dtype=torch.float32),
-                    "class": torch.zeros(0, dtype=torch.int64),
+                    "labels": torch.zeros(0, dtype=torch.int64),
                     "area": torch.zeros(0, dtype=torch.float32),
                     "iscrowd": torch.zeros((0,), dtype=torch.int64)
                 }
@@ -227,7 +227,7 @@ class CropDataset(Dataset):
                 target = {}
                 area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
                 target['boxes'] = torch.as_tensor(boxes, dtype=torch.float32)
-                target['class'] = torch.ones((boxes.shape[0],), dtype=torch.int64)
+                target['labels'] = torch.ones((boxes.shape[0],), dtype=torch.int64)
                 target['area'] = torch.as_tensor(area, dtype=torch.float32)
                 target['iscrowd'] = torch.zeros((boxes.shape[0],), dtype=torch.int64)
             
@@ -448,13 +448,13 @@ class CropPseudoTestset(Dataset):
         if boxes.shape[0] == 0:
             target = {
                 "boxes": torch.zeros((0, 4), dtype=torch.float32),
-                "class": torch.zeros(0, dtype=torch.int64)
+                "labels": torch.zeros(0, dtype=torch.int64)
             }
         else:
             boxes[:,[0,1,2,3]] = boxes[:,[1,0,3,2]]
             target = {
                 'boxes': torch.as_tensor(boxes, dtype=torch.float32),
-                'class': torch.ones((boxes.shape[0],), dtype=torch.int64)
+                'labels': torch.ones((boxes.shape[0],), dtype=torch.int64)
             }
 
         image = image.astype(np.float32)
