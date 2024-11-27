@@ -29,7 +29,7 @@ class CropDataset(Dataset):
     def __init__(self, df, img_size, mode='train', network='FasterRCNN', bbox_removal_threshold=0.25):
         super(CropDataset,self).__init__()
         self.df = df
-        self.image_ids = list(np.unique(self.df.image_id.values))
+        self.image_ids = list(np.unique(self.df.Image_ID.values))
         self.img_size = img_size
         self.root_dir = 'dataset/images'
         # self.w2017_ext_dir = 'dataset/wheat2017'
