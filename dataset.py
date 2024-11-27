@@ -431,7 +431,7 @@ class CropPseudoTestset(Dataset):
                 if random.random() > 0.5:
                     image, boxes = self.load_image_and_boxes(image_path)
                 else:
-                    image, boxes = self.load_cutmix_image_and_boxes(image_path)
+                    image, boxes = self.load_image_and_boxes(image_path)
                 image, boxes = self.random_crop_resize(image, boxes, p=0.5)
                 if len(boxes) > 0:
                     cats = np.ones(boxes.shape[0], dtype=int)
