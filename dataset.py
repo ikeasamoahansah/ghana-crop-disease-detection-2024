@@ -8,7 +8,6 @@ import torch
 from torch.utils.data import Dataset
 import torch.nn.functional as F
 from albumentations import *
-from torchvision.transforms import *
 
 cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
@@ -120,7 +119,7 @@ class CropDataset(Dataset):
 
     def load_image_and_boxes(self, image_id):
         tmp_df = self.df.loc[self.df['Image_ID']==image_id]
-        img_path = '{}/{}.jpg'.format(self.root_dir, image_id)
+        img_path = '{}/{}'.format(self.root_dir, image_id)
         
         img = Image.open(img_path)
         img = img.convert('RGB')
@@ -128,8 +127,6 @@ class CropDataset(Dataset):
 
         boxes = []
         for _, row in tmp_df.iterrows():
-            if row['isbox'] == False:
-                continue
             boxes.append([float(row['xmin']),float(row['ymin']),float(row['xmax']),float(row['ymax'])])
 
         boxes = self.refine_boxes(boxes)
@@ -364,8 +361,6 @@ class CropPseudoTestset(Dataset):
 
         boxes = []
         for _, row in tmp_df.iterrows():
-            if row['isbox'] == False:
-                continue
             boxes.append([float(row['xmin']),float(row['ymin']),float(row['xmax']),float(row['ymax'])])
         boxes = self.refine_boxes(boxes)
 

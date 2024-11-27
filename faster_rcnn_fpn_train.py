@@ -19,6 +19,7 @@ from models import fasterrcnn_resnet_fpn
 from warmup_scheduler import GradualWarmupScheduler
 from dataset import CropDataset
 from evaluation import calculate_final_score
+from sklearn.model_selection import train_test_split
 
 ### uncomment to train with more workers
 import resource
@@ -75,10 +76,9 @@ if __name__ == "__main__":
     # spike_df = spike_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)
 
     for fold in args.folds:
-        valid_df = df.loc[df['fold'] == fold]
-        train_df = df.loc[~df.index.isin(valid_df.index)]
+        train_unique_imgs_df = df.drop_duplicates(subset = ['Image_ID'], ignore_index = True)
+        train_df, valid_df = train_test_split(train_unique_imgs_df, test_size = 0.25, stratify=train_unique_imgs_df['class'], random_state=42)
         
-        valid_df = valid_df.loc[valid_df['isbox']==True].reset_index(drop=True)
         # warm_df = pd.concat([train_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
         # train_df = pd.concat([train_df], ignore_index=True).sample(frac=1).reset_index(drop=True)
 
