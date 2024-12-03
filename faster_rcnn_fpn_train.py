@@ -67,7 +67,7 @@ if __name__ == "__main__":
     os.makedirs('checkpoints', exist_ok = True)
     os.makedirs('logs', exist_ok = True)
 
-    df = pd.read_csv('dataset/Train.csv')
+    df = pd.read_csv('/kaggle/input/ghana-crop-disease/Train.csv')
     
     # wheat2017_df = pd.read_csv('dataset/wheat2017.csv')
     # wheat2017_df = wheat2017_df[['image_id','fold','xmin','ymin','xmax','ymax','isbox','source']].reset_index(drop=True)

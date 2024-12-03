@@ -13,7 +13,7 @@ cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 
 def get_aug(aug):
-    return Compose(aug, bbox_params=BboxParams(format='pascal_voc', min_area=0, min_visibility=0, label_fields=['category_id']))
+    return Compose(aug, bbox_params=BboxParams(format='pascal_voc', min_area=0, min_visibility=0, label_fields=['class']))
 
 def bb_overlap(boxA, boxB):
     xA = max(boxA[0], boxB[0])
@@ -31,7 +31,7 @@ class CropDataset(Dataset):
         self.df = df
         self.image_ids = list(np.unique(self.df.Image_ID.values))
         self.img_size = img_size
-        self.root_dir = 'dataset/images'
+        self.root_dir = '/kaggle/input/ghana-crop-disease/images'
         # self.w2017_ext_dir = 'dataset/wheat2017'
         # self.spike_ext_dir = 'dataset/spike-wheat'
         assert mode in  ['train', 'valid']
@@ -39,6 +39,7 @@ class CropDataset(Dataset):
         assert network in ['FasterRCNN', 'EffDet']
         self.network = network
         self.bbox_removal_threshold = bbox_removal_threshold
+        self.class_map = sorted(df['class'].unique().tolist())
         if self.mode == 'train':
             random.shuffle(self.image_ids)
         self.train_transforms = get_aug([
@@ -79,8 +80,8 @@ class CropDataset(Dataset):
         return result_boxes
 
     def resize_image(self, image, boxes):
-        cats = np.ones(boxes.shape[0], dtype=int)
-        annotations = {'image': image, 'bboxes': boxes, 'category_id': cats}
+        cats = [i for i, v in enumerate(self.class_map)]
+        annotations = {'image': image, 'bboxes': boxes, 'class': cats}
         augmented = self.resize_transforms(**annotations)
         image = augmented['image']
         boxes = np.array(augmented['bboxes'])
@@ -192,8 +193,8 @@ class CropDataset(Dataset):
 
                 image, boxes = self.random_crop_resize(image, boxes, p=0.5)
                 if len(boxes) > 0:
-                    cats = np.ones(boxes.shape[0], dtype=int)
-                    annotations = {'image': image, 'bboxes': boxes, 'category_id': cats}
+                    cats = [i for i, v in enumerate(self.class_map)]
+                    annotations = {'image': image, 'bboxes': boxes, 'class': cats}
                     augmented = self.train_transforms(**annotations)
                     image = augmented['image']
                     boxes = np.array(augmented['bboxes'])
@@ -237,7 +238,7 @@ class CropDataset(Dataset):
         return image, target
 
 class CropTestset(Dataset):
-    def __init__(self, df, img_size, root_dir='dataset/train', shuffle=True):
+    def __init__(self, df, img_size, root_dir='/kaggle/input/ghana-crop-disease/images', shuffle=True):
         super(CropTestset,self).__init__()
         self.df = df
         self.image_ids = list(np.unique(self.df.Image_ID.values))
@@ -245,6 +246,7 @@ class CropTestset(Dataset):
             random.shuffle(self.image_ids)
         self.img_size = img_size
         self.root_dir = root_dir
+        self.class_map = sorted(df['class'].unique().tolist())
         self.transforms = Resize(height=self.img_size, width=self.img_size, interpolation=1, p=1)
 
     def __len__(self):
@@ -252,7 +254,7 @@ class CropTestset(Dataset):
 
     def __getitem__(self, index):
         image_id = self.image_ids[index]
-        img_path = '{}/{}.jpg'.format(self.root_dir, image_id)
+        img_path = '{}/{}'.format(self.root_dir, image_id)
         img = Image.open(img_path)
         img = img.convert('RGB')
         img = np.array(img)
@@ -274,6 +276,7 @@ class CropPseudoTestset(Dataset):
         assert mode in  ['train', 'valid']
         self.mode = mode
         self.bbox_removal_threshold = bbox_removal_threshold
+        self.class_map = sorted(df['class'].unique().tolist())
         if self.mode == 'train':
             random.shuffle(self.image_paths)
         self.train_transforms = get_aug([
@@ -314,8 +317,8 @@ class CropPseudoTestset(Dataset):
         return result_boxes
 
     def resize_image(self, image, boxes):
-        cats = np.ones(boxes.shape[0], dtype=int)
-        annotations = {'image': image, 'bboxes': boxes, 'category_id': cats}
+        cats = [i for i, v in enumerate(self.class_map)]
+        annotations = {'image': image, 'bboxes': boxes, 'class': cats}
         augmented = self.resize_transforms(**annotations)
         image = augmented['image']
         boxes = np.array(augmented['bboxes'])
@@ -368,8 +371,8 @@ class CropPseudoTestset(Dataset):
             augs = get_aug([
                 Resize(height=1024, width=1024, interpolation=1, p=1)
             ])
-            cats = np.ones(boxes.shape[0], dtype=int)
-            annotations = {'image': img, 'bboxes': boxes, 'category_id': cats}
+            cats = [i for i, v in enumerate(self.class_map)]
+            annotations = {'image': img, 'bboxes': boxes, 'class': cats}
             augmented = augs(**annotations)
             img = augmented['image']
             boxes = np.array(augmented['bboxes'])
@@ -434,8 +437,8 @@ class CropPseudoTestset(Dataset):
                     image, boxes = self.load_image_and_boxes(image_path)
                 image, boxes = self.random_crop_resize(image, boxes, p=0.5)
                 if len(boxes) > 0:
-                    cats = np.ones(boxes.shape[0], dtype=int)
-                    annotations = {'image': image, 'bboxes': boxes, 'category_id': cats}
+                    cats = [i for i, v in enumerate(self.class_map)]
+                    annotations = {'image': image, 'bboxes': boxes, 'class': cats}
                     augmented = self.train_transforms(**annotations)
                     image = augmented['image']
                     boxes = np.array(augmented['bboxes'])
