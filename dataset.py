@@ -7,13 +7,13 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 import torch.nn.functional as F
-from albumentations import *
+import albumentations as A
 
 cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 
 def get_aug(aug):
-    return Compose(aug, bbox_params=BboxParams(format='pascal_voc', min_area=0, min_visibility=0, label_fields=['class']))
+    return A.Compose(aug, bbox_params=A.BboxParams(format='pascal_voc', min_area=0, min_visibility=0, label_fields=['class'], clip=True))
 
 def bb_overlap(boxA, boxB):
     xA = max(boxA[0], boxB[0])
@@ -43,28 +43,28 @@ class CropDataset(Dataset):
         if self.mode == 'train':
             random.shuffle(self.image_ids)
         self.train_transforms = get_aug([
-            HorizontalFlip(p=0.5),
-            VerticalFlip(p=0.5),
-            ToGray(p=0.01),
-            OneOf([
-                IAAAdditiveGaussianNoise(),
-                GaussNoise(),
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            A.ToGray(p=0.01),
+            A.OneOf([
+                A.IAAAdditiveGaussianNoise(),
+                A.GaussNoise(),
             ], p=0.2),
-            OneOf([
-                MotionBlur(p=0.2),
-                MedianBlur(blur_limit=3, p=0.1),
-                Blur(blur_limit=3, p=0.1),
+            A.OneOf([
+                A.MotionBlur(p=0.2),
+                A.MedianBlur(blur_limit=3, p=0.1),
+                A.Blur(blur_limit=3, p=0.1),
             ], p=0.2),
-            OneOf([
-                CLAHE(),
-                IAASharpen(),
-                IAAEmboss(),
-                RandomBrightnessContrast(),
+            A.OneOf([
+                A.CLAHE(),
+                A.IAASharpen(),
+                A.IAAEmboss(),
+                A.RandomBrightnessContrast(),
             ], p=0.25),
-            HueSaturationValue(p=0.25)
+            A.HueSaturationValue(p=0.25)
         ])
         self.resize_transforms = get_aug([
-            Resize(height=self.img_size, width=self.img_size, interpolation=1, p=1)
+            A.Resize(height=self.img_size, width=self.img_size, interpolation=1, p=1)
         ])
 
     def __len__(self):
@@ -247,7 +247,7 @@ class CropTestset(Dataset):
         self.img_size = img_size
         self.root_dir = root_dir
         self.class_map = sorted(df['class'].unique().tolist())
-        self.transforms = Resize(height=self.img_size, width=self.img_size, interpolation=1, p=1)
+        self.transforms = A.Resize(height=self.img_size, width=self.img_size, interpolation=1, p=1)
 
     def __len__(self):
         return len(self.image_ids)
@@ -280,28 +280,28 @@ class CropPseudoTestset(Dataset):
         if self.mode == 'train':
             random.shuffle(self.image_paths)
         self.train_transforms = get_aug([
-            HorizontalFlip(p=0.5),
-            VerticalFlip(p=0.5),
-            ToGray(p=0.01),
-            OneOf([
-                IAAAdditiveGaussianNoise(),
-                GaussNoise(),
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+            A.ToGray(p=0.01),
+            A.OneOf([
+                A.IAAAdditiveGaussianNoise(),
+                A.GaussNoise(),
             ], p=0.2),
-            OneOf([
-                MotionBlur(p=0.2),
-                MedianBlur(blur_limit=3, p=0.1),
-                Blur(blur_limit=3, p=0.1),
+            A.OneOf([
+                A.MotionBlur(p=0.2),
+                A.MedianBlur(blur_limit=3, p=0.1),
+                A.Blur(blur_limit=3, p=0.1),
             ], p=0.2),
-            OneOf([
-                CLAHE(),
-                IAASharpen(),
-                IAAEmboss(),
-                RandomBrightnessContrast(),
+            A.OneOf([
+                A.CLAHE(),
+                A.IAASharpen(),
+                A.IAAEmboss(),
+                A.RandomBrightnessContrast(),
             ], p=0.25),
-            HueSaturationValue(p=0.25)
+            A.HueSaturationValue(p=0.25)
         ])
         self.resize_transforms = get_aug([
-            Resize(height=self.img_size, width=self.img_size, interpolation=1, p=1)
+            A.Resize(height=self.img_size, width=self.img_size, interpolation=1, p=1)
         ])
 
     def __len__(self):
