@@ -47,18 +47,14 @@ class CropDataset(Dataset):
             A.VerticalFlip(p=0.5),
             A.ToGray(p=0.01),
             A.OneOf([
-                A.IAAAdditiveGaussianNoise(),
-                A.GaussNoise(),
-            ], p=0.2),
-            A.OneOf([
                 A.MotionBlur(p=0.2),
                 A.MedianBlur(blur_limit=3, p=0.1),
                 A.Blur(blur_limit=3, p=0.1),
             ], p=0.2),
             A.OneOf([
                 A.CLAHE(),
-                A.IAASharpen(),
-                A.IAAEmboss(),
+                A.Sharpen(),
+                A.Emboss(),
                 A.RandomBrightnessContrast(),
             ], p=0.25),
             A.HueSaturationValue(p=0.25)
@@ -284,18 +280,14 @@ class CropPseudoTestset(Dataset):
             A.VerticalFlip(p=0.5),
             A.ToGray(p=0.01),
             A.OneOf([
-                A.IAAAdditiveGaussianNoise(),
-                A.GaussNoise(),
-            ], p=0.2),
-            A.OneOf([
                 A.MotionBlur(p=0.2),
                 A.MedianBlur(blur_limit=3, p=0.1),
                 A.Blur(blur_limit=3, p=0.1),
             ], p=0.2),
             A.OneOf([
                 A.CLAHE(),
-                A.IAASharpen(),
-                A.IAAEmboss(),
+                A.Sharpen(),
+                A.Emboss(),
                 A.RandomBrightnessContrast(),
             ], p=0.25),
             A.HueSaturationValue(p=0.25)
