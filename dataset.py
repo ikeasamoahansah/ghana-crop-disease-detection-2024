@@ -13,7 +13,7 @@ cv2.setNumThreads(0)
 cv2.ocl.setUseOpenCL(False)
 
 def get_aug(aug):
-    return A.Compose(aug, bbox_params=A.BboxParams(format='pascal_voc', min_area=0, min_visibility=0, label_fields=['class'], clip=True))
+    return A.Compose(aug, bbox_params=A.BboxParams(format='pascal_voc', min_area=0, min_visibility=0, label_fields=['class']))
 
 def bb_overlap(boxA, boxB):
     xA = max(boxA[0], boxB[0])
@@ -76,7 +76,7 @@ class CropDataset(Dataset):
         return result_boxes
 
     def resize_image(self, image, boxes):
-        cats = [i for i, v in enumerate(self.class_map)]
+        cats = np.ones(boxes.shape[0], dtype=int)
         annotations = {'image': image, 'bboxes': boxes, 'class': cats}
         augmented = self.resize_transforms(**annotations)
         image = augmented['image']
@@ -189,7 +189,7 @@ class CropDataset(Dataset):
 
                 image, boxes = self.random_crop_resize(image, boxes, p=0.5)
                 if len(boxes) > 0:
-                    cats = [i for i, v in enumerate(self.class_map)]
+                    cats = np.ones(boxes.shape[0], dtype=int)
                     annotations = {'image': image, 'bboxes': boxes, 'class': cats}
                     augmented = self.train_transforms(**annotations)
                     image = augmented['image']
@@ -309,7 +309,7 @@ class CropPseudoTestset(Dataset):
         return result_boxes
 
     def resize_image(self, image, boxes):
-        cats = [i for i, v in enumerate(self.class_map)]
+        cats = np.ones(boxes.shape[0], dtype=int)
         annotations = {'image': image, 'bboxes': boxes, 'class': cats}
         augmented = self.resize_transforms(**annotations)
         image = augmented['image']
@@ -363,7 +363,7 @@ class CropPseudoTestset(Dataset):
             augs = get_aug([
                 Resize(height=1024, width=1024, interpolation=1, p=1)
             ])
-            cats = [i for i, v in enumerate(self.class_map)]
+            cats = np.ones(boxes.shape[0], dtype=int)
             annotations = {'image': img, 'bboxes': boxes, 'class': cats}
             augmented = augs(**annotations)
             img = augmented['image']
@@ -429,7 +429,7 @@ class CropPseudoTestset(Dataset):
                     image, boxes = self.load_image_and_boxes(image_path)
                 image, boxes = self.random_crop_resize(image, boxes, p=0.5)
                 if len(boxes) > 0:
-                    cats = [i for i, v in enumerate(self.class_map)]
+                    cats = np.ones(boxes.shape[0], dtype=int)
                     annotations = {'image': image, 'bboxes': boxes, 'class': cats}
                     augmented = self.train_transforms(**annotations)
                     image = augmented['image']

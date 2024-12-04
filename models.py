@@ -25,7 +25,7 @@ def my_resnet_fpn_backbone(backbone_name, pretrained):
     out_channels = 256
     return BackboneWithFPN(backbone, return_layers, in_channels_list, out_channels)
 
-def fasterrcnn_resnet_fpn(backbone_name='resnet152', progress=True, num_classes=91, pretrained=True, pretrained_backbone=True, **kwargs):
+def fasterrcnn_resnet_fpn(backbone_name='resnet152', progress=True, num_classes=24, pretrained=True, pretrained_backbone=True, **kwargs):
     if backbone_name == 'resnet50':
         model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=pretrained)
     elif backbone_name in ['resnet101', 'resnet152']:
