@@ -185,7 +185,7 @@ class CropDataset(Dataset):
                 if random.random() > 0.5:
                     image, boxes = self.load_image_and_boxes(image_id)
                 else:
-                    image, boxes = self.load_cutmix_image_and_boxes(image_id)
+                    image, boxes = self.load_image_and_boxes(image_id)
 
                 image, boxes = self.random_crop_resize(image, boxes, p=0.5)
                 if len(boxes) > 0:
