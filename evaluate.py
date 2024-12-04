@@ -33,10 +33,10 @@ from matplotlib import pyplot as plt
 import cv2
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("--network", default="effdet", type=str,  choices=['fasterrcnn', 'effdet'])
-parser.add_argument("--backbone", default="ed7", type=str,  choices=['ed0', 'ed1', 'ed2', 'ed3', 'ed4', 'ed5', 'ed6', 'ed7', 'resnet50', 'resnet101', 'resnet152'])
-parser.add_argument("--img-size", default=768, type=int)
-parser.add_argument("--batch-size", default=16, type=int)
+parser.add_argument("--network", default="fasterrcnn", type=str,  choices=['fasterrcnn', 'effdet'])
+parser.add_argument("--backbone", default="resnet152", type=str,  choices=['ed0', 'ed1', 'ed2', 'ed3', 'ed4', 'ed5', 'ed6', 'ed7', 'resnet50', 'resnet101', 'resnet152'])
+parser.add_argument("--img-size", default=1024, type=int)
+parser.add_argument("--batch-size", default=8, type=int)
 parser.add_argument("--workers", default=8, type=int)
 parser.add_argument("--folds", nargs="+", type=int)
 parser.add_argument("--use-amp", default=False, type=lambda x: (str(x).lower() == "true"))
@@ -54,7 +54,11 @@ def collate_fn(batch):
     return tuple(zip(*batch))
 
 if __name__ == "__main__":
-    df = pd.read_csv('dataset/Train.csv')
+    df_train = pd.read_csv('/kaggle/input/ghana-crop-disease/Train.csv')
+    df = pd.read_csv('/kaggle/input/ghana-crop-disease/Test.csv')
+
+    class_map = {i:v for i, v in sorted(df_train['class'].unique().tolist())}
+    predictions = []
 
     ground_truth = {}
     box_pred = {}
@@ -66,9 +70,9 @@ if __name__ == "__main__":
         tta_transforms.append(TTACompose([tta_transform for tta_transform in tta_combination if tta_transform]))
 
     for fold in args.folds:
-        valid_df = df.loc[df['fold'] == fold]
+        valid_df = df[['Image_ID', 'class']].copy()
 
-        valid_dataset = CropTestset(df=valid_df, img_size=args.img_size, root_dir='dataset/train')
+        valid_dataset = CropTestset(df=valid_df, img_size=args.img_size, root_dir='/kaggle/input/ghana-crop-disease/images')
         valid_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, collate_fn=collate_fn)
 
         for image_id in list(np.unique(valid_df.Image_ID.values)):
@@ -95,7 +99,7 @@ if __name__ == "__main__":
         else:
             raise ValueError('NETWORK')
 
-        CHECKPOINT = 'checkpoints/{}_{}_{}_fold{}.pth'.format(args.network, args.backbone, args.img_size, fold)
+        CHECKPOINT = 'checkpoints/{}_{}_{}_fold0.pth'.format(args.network, args.backbone, args.img_size)
         checkpoint = torch.load(CHECKPOINT)
         if args.network == 'effdet':
             model.model.load_state_dict(checkpoint)
@@ -134,6 +138,18 @@ if __name__ == "__main__":
                         box_pred[image_id].append(boxes.tolist())
                         score_pred[image_id].append(scores.tolist())
                         label_pred[image_id].append(labels.tolist())
+
+                        for score, bbox, label in zip(score_pred, box_pred, label_pred):
+                    
+                            predictions.append({
+                                'Image_ID': image_id,
+                                'confidence': score[image_id].item(),
+                                'class': class_map[label_pred[image_id]],
+                                'ymin': bbox[image_id][1],
+                                'xmin': bbox[image_id][0],
+                                'ymax': bbox[image_id][3],
+                                'xmax': bbox[image_id][2]
+                            })
 
             else:
                 images = torch.stack(images)
@@ -193,3 +209,8 @@ if __name__ == "__main__":
     print('[Best nms threshold]: {:.2f}'.format(mythreshs[idx].nms_thresh))
     print('[Best pp threshold]: {:.2f}'.format(mythreshs[idx].pp_threshold))
     print('[AP]: {:.5f}'.format(results[idx]))
+    
+    all_pred = []
+    all_pred.append(pd.DataFrame(predictions))
+    final_sub = pd.concat(all_pred, ignore_index=True)
+    final_sub.to_csv('final_sub.csv', index=False)
